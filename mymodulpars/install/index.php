@@ -1,6 +1,17 @@
 <?
-use Bitrix\Main\Localization\Loc;
+require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
+// use Bitrix\Main\Localization\Loc;
+// use Bitrix\Highloadblock\HighloadBlockTable as HLBT;
+// use \Bitrix\Highloadblock as HL;
+use \Bitrix\Main\Localization\Loc;
+use \Bitrix\Main\Config as Conf;
+use \Bitrix\Main\Config\Option;
+use \Bitrix\Main\Loader;
+use \Bitrix\Main\Entity\Base;
+use \Bitrix\Main\Application;
+use Bitrix\Main\EventManager; 
 
+use Bitrix\Highloadblock as HL;
 Loc::loadMessages(__FILE__);
 
 Class mymodulpars extends CModule
@@ -32,6 +43,7 @@ Class mymodulpars extends CModule
 	function InstallDB($install_wizard = true)
 	{
 		RegisterModule("mymodulpars");
+
 		return true;
 	}
 
@@ -64,12 +76,100 @@ Class mymodulpars extends CModule
 
 	function DoInstall()
 	{
+			$arLangs = Array(
+	          'ru' => 'Таблица валют',
+	          'en' => 'TableOfCurrency'
+	        );
+			CModule::IncludeModule('highloadblock');
+	        $resultAdd = \Bitrix\Highloadblock\HighloadBlockTable::add(array(
+	          'NAME' => 'TableOfCurrency',
+	          'TABLE_NAME' => 'table_currency', 
+	        ));
+
+			if ($resultAdd->isSuccess()) {
+		    	$id = $resultAdd->getId();
+		    	foreach($arLangs as $lang_key => $lang_val){
+		        	HL\HighloadBlockLangTable::add(array(
+		            	'ID' => $id,
+		            	'LID' => $lang_key,
+		            	'NAME' => $lang_val
+		        	));
+		    	}
+			}else {
+		    	$errors = $resultAdd->getErrorMessages();
+			}
+		 	$UFObject = 'HLBLOCK_'.$id;
+			$arCartFields = Array(
+			    'UF_CURRENCY'=>Array(
+			        'ENTITY_ID' => $UFObject,
+			        'FIELD_NAME' => 'UF_CURRENCY',
+			        'USER_TYPE_ID' => 'string',
+			        'MANDATORY' => 'Y',
+			        "EDIT_FORM_LABEL" => Array('ru'=>'Валюта', 'en'=>'Currency'), 
+			        "LIST_COLUMN_LABEL" => Array('ru'=>'Валюта', 'en'=>'Currency'),
+			        "LIST_FILTER_LABEL" => Array('ru'=>'Валюта', 'en'=>'Currency'), 
+			        "ERROR_MESSAGE" => Array('ru'=>'', 'en'=>''), 
+			        "HELP_MESSAGE" => Array('ru'=>'', 'en'=>''),
+			    ),
+			    'UF_ADDED'=>Array(
+			        'ENTITY_ID' => $UFObject,
+			        'FIELD_NAME' => 'UF_ADDED',
+			        'USER_TYPE_ID' => 'string',
+			        'MANDATORY' => 'Y',
+			        "EDIT_FORM_LABEL" => Array('ru'=>'Дата добавления', 'en'=>'Date added'), 
+			        "LIST_COLUMN_LABEL" => Array('ru'=>'Дата добавления', 'en'=>'Date added'),
+			        "LIST_FILTER_LABEL" => Array('ru'=>'Дата добавления', 'en'=>'Date added'), 
+			        "ERROR_MESSAGE" => Array('ru'=>'', 'en'=>''), 
+			        "HELP_MESSAGE" => Array('ru'=>'', 'en'=>''),
+			    ),
+			    'UF_VALUE'=>Array(
+			        'ENTITY_ID' => $UFObject,
+			        'FIELD_NAME' => 'UF_VALUE',
+			        'USER_TYPE_ID' => 'string',
+			        'MANDATORY' => 'Y',
+			        "EDIT_FORM_LABEL" => Array('ru'=>'Значение валюты', 'en'=>'Value of currency'), 
+			        "LIST_COLUMN_LABEL" => Array('ru'=>'Значение валюты', 'en'=>'Value of currency'),
+			        "LIST_FILTER_LABEL" => Array('ru'=>'Значение валюты', 'en'=>'Value of currency'), 
+			        "ERROR_MESSAGE" => Array('ru'=>'', 'en'=>''), 
+			        "HELP_MESSAGE" => Array('ru'=>'', 'en'=>''),
+			    ),
+
+			);
+
+			$arSavedFieldsRes = Array();
+			foreach($arCartFields as $arCartField){
+				$obUserField  = new \CUserTypeEntity;
+				$ID = $obUserField->Add($arCartField);
+				$arSavedFieldsRes[] = $ID;
+			}
+			$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($id)->fetch();	
+			$entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+			$entity_data_class = $entity->getDataClass();
+			// $entity_data_class = self::GetEntityDataClass($id);
+			$resultAdd2 = $entity_data_class::add(array(
+		      'UF_CURRENCY'         => 'USD',
+		      'UF_ADDED'         => $result['USD']['DATE'],
+		      'UF_VALUE'        => $result['USD']['VALUE']
+		      
+		   ));
+
 		$this->InstallFiles();
 		$this->InstallDB(false);
+
 	}
 
 	function DoUninstall()
 	{
+		CModule::IncludeModule('highloadblock');
+		$result = \Bitrix\Highloadblock\HighloadBlockTable::getList(array('filter'=>array('=NAME'=>"TableOfCurrency")));
+		if($row = $result->fetch())
+		{
+
+		    $id = $row["ID"];
+		}
+		if ($id>0){
+			Bitrix\Highloadblock\HighloadBlockTable::delete($id);
+		}
         $this->UnInstallDB(false);
 	}
 }
