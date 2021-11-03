@@ -145,7 +145,6 @@ Class mymodulpars extends CModule
 			$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($id)->fetch();	
 			$entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
 			$entity_data_class = $entity->getDataClass();
-			// $entity_data_class = self::GetEntityDataClass($id);
 			$resultAdd2 = $entity_data_class::add(array(
 		      'UF_CURRENCY'         => 'USD',
 		      'UF_ADDED'         => $result['USD']['DATE'],

@@ -35,18 +35,11 @@ class Table
 			$arData = new \CDBResult($arData, "table_currency");
 
 			while($arResult = $arData->Fetch()){
-				/*$idElement = $arResult["ID"];
-				$dateOld = $arResult['UF_ADDED'];
-				$usdOld = $arResult['UF_VALUE'];*/
 				$result['ID'] = $arResult["ID"];
 				$result['DATE'] = $arResult['UF_ADDED'];
 				$result['VALUE'] = $arResult['UF_VALUE'];
 
 			}
-/*			if (!$arResult["ID"] > 0){
-				return false;
-			}*/
-			// print_r($result);
 			return $result;
 	}
 
@@ -58,7 +51,6 @@ class Table
 	    if (!$hlblock){
 	    	echo "Таблица не установлена, пожалуйста, переустановите модуль";
 	    	die();
-	    	// return false;
 	    }
 	    return $hlblock['ID'];
 	}

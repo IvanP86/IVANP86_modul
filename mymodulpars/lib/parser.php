@@ -2,8 +2,6 @@
 
 namespace Bitrix\Mymodulpars;
 
-// require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
-
 class Parser
 {
     public function getCurrencyValue($url, $referer = '', $date, $currency = 'USD')
